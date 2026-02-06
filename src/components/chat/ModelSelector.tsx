@@ -1,5 +1,6 @@
 // src/components/chat/ModelSelector.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Select } from "antd";
 
 interface ModelSelectorProps {
   onChange: (model: string) => void;
@@ -14,7 +15,14 @@ export default function ModelSelector({
 }: ModelSelectorProps) {
   const [selected, setSelected] = useState(value ?? defaultModel);
 
-  const models = ["gpt-5-mini", "gpt-4o-mini", "llama3.2:3b"];
+  const models = useMemo(
+    () => [
+      { value: "gpt-5-mini", label: "GPT-5 Mini" },
+      { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+      { value: "llama3.2:3b", label: "Llama 3.2 3B" },
+    ],
+    []
+  );
 
   useEffect(() => {
     if (value) {
@@ -24,19 +32,15 @@ export default function ModelSelector({
   }, [value]);
 
   return (
-    <select
+    <Select
       value={value ?? selected}
-      onChange={(e) => {
-        setSelected(e.target.value);
-        onChange(e.target.value);
+      onChange={(next) => {
+        setSelected(next);
+        onChange(next);
       }}
-      className="bg-gray-800 px-3 py-2 rounded"
-    >
-      {models.map((m) => (
-        <option key={m} value={m}>
-          {m}
-        </option>
-      ))}
-    </select>
+      options={models}
+      size="middle"
+      style={{ minWidth: 180 }}
+    />
   );
 }

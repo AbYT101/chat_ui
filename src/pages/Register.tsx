@@ -9,10 +9,14 @@ import {
   Input,
   Layout,
   Space,
+  Switch,
   Typography,
+  theme,
 } from "antd";
+import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { register as registerRequest } from "../api/auth.api";
 import { useAuth } from "../auth/AuthContext";
+import { useThemeMode } from "../theme/ThemeProvider";
 
 const extractToken = (payload: unknown) => {
   if (!payload || typeof payload !== "object") return null;
@@ -22,6 +26,8 @@ const extractToken = (payload: unknown) => {
 };
 
 export default function Register() {
+  const { token } = theme.useToken();
+  const { mode, toggle } = useThemeMode();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -62,7 +68,9 @@ export default function Register() {
       style={{
         minHeight: "100vh",
         background:
-          "radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 45%), #0b1220",
+          mode === "dark"
+            ? "radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 45%), #0b1220"
+            : "radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 45%), #f8fafc",
       }}
     >
       <Layout.Content
@@ -71,10 +79,23 @@ export default function Register() {
           alignItems: "center",
           justifyContent: "center",
           padding: "48px 16px",
+          position: "relative",
         }}
       >
+        <div style={{ position: "absolute", top: 24, right: 24 }}>
+          <Switch
+            checked={mode === "dark"}
+            onChange={toggle}
+            checkedChildren={<MoonOutlined />}
+            unCheckedChildren={<SunOutlined />}
+          />
+        </div>
         <Card
-          style={{ width: "100%", maxWidth: 440 }}
+          style={{
+            width: "100%",
+            maxWidth: 440,
+            boxShadow: token.boxShadowSecondary,
+          }}
           styles={{ body: { padding: 32 } }}
           bordered
         >

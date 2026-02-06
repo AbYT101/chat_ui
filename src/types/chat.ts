@@ -5,6 +5,7 @@ export interface Message {
   role: Role;
   content: string;
   model?: string;
+  isStreaming?: boolean;
 }
 
 export interface Conversation {

@@ -4,11 +4,11 @@ import { v4 as uuidv4 } from "uuid";
 import ChatInput from "../components/ChatInput";
 import MessageBubble from "../components/MessageBubble";
 import ModelSelector from "../components/chat/ModelSelector";
-import KnowledgeSelector from "../components/chat/KnowledgeSelector";
 import { getMessages, streamMessage } from "../api/chat.api";
 import type { Message } from "../types/chat";
 import { useChat } from "../chat/ChatContext";
-import { Input } from "antd";
+import { Alert, Badge, Empty, Input, Space, Spin, Typography, theme } from "antd";
+import { useThemeMode } from "../theme/ThemeProvider";
 
 const normalizeRole = (role: string): "user" | "assistant" =>
   role === "assistant" || role === "ai" ? "assistant" : "user";
@@ -24,10 +24,11 @@ const mapServerMessage = (serverMessage: {
 });
 
 export default function Chat() {
+  const { token } = theme.useToken();
+  const { mode } = useThemeMode();
   const { activeConversationId } = useChat();
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState("gpt-5-mini");
-  const [knowledgeTypes, setKnowledgeTypes] = useState<string[] | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +93,7 @@ export default function Chat() {
       role: "assistant",
       content: "",
       model,
+      isStreaming: true,
     };
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
@@ -109,59 +111,118 @@ export default function Chat() {
       },
       onDone: () => {
         setIsStreaming(false);
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantId
+              ? { ...message, isStreaming: false }
+              : message
+          )
+        );
       },
       onError: (err) => {
         setIsStreaming(false);
         setError(err.message);
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantId
+              ? { ...message, isStreaming: false }
+              : message
+          )
+        );
       },
     });
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden" style={{ height: '100%', width: '100%' }}>
-      <div className="border-b border-slate-800 p-4 flex flex-wrap gap-3 items-center" style={{ flexShrink: 0 }}>
-        <ModelSelector onChange={setModel} value={model} />
-        <KnowledgeSelector onChange={setKnowledgeTypes} />
-        <Input
-          placeholder="Search this chat"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="max-w-xs"
-        />
-        {knowledgeTypes?.length ? (
-          <span className="text-xs text-slate-400">
-            Routing to: {knowledgeTypes.join(", ")}
-          </span>
-        ) : null}
+    <div
+      className="flex-1 flex flex-col overflow-hidden"
+      style={{ height: "100%", width: "100%" }}
+    >
+      <div
+        style={{
+          flexShrink: 0,
+          background:
+            mode === "dark"
+              ? "linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72))"
+              : "linear-gradient(180deg, rgba(241, 245, 249, 0.95), rgba(248, 250, 252, 0.9))",
+        }}
+      >
+        <div className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <Typography.Title level={4} style={{ margin: 0 }}>
+                Conversation
+              </Typography.Title>
+              <Typography.Text type="secondary">
+                Ask questions and get responses in real time.
+              </Typography.Text>
+            </div>
+            <Space size={12} wrap>
+              <Badge
+                status={isStreaming ? "processing" : "default"}
+                text={isStreaming ? "Streaming" : "Ready"}
+              />
+              <ModelSelector onChange={setModel} value={model} />
+              <Input.Search
+                placeholder="Search this chat"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                allowClear
+                style={{ width: 220 }}
+              />
+            </Space>
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 bg-slate-900" style={{ flexGrow: 1 }}>
+      <div
+        className="flex-1 overflow-y-auto p-6"
+        style={{
+          flexGrow: 1,
+          background:
+            mode === "dark"
+              ? "linear-gradient(180deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.95))"
+              : token.colorBgLayout,
+        }}
+      >
         {error ? (
-          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-            {error}
-          </div>
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
         ) : null}
 
-        {emptyState ? (
-          <div className="text-center text-slate-400 mt-16">
-            {activeConversationId
-              ? "No messages yet. Start the conversation below."
-              : "Select or create a conversation to start chatting."}
-          </div>
-        ) : filteredMessages.length ? (
-          filteredMessages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))
-        ) : (
-          <div className="text-center text-slate-400 mt-16">
-            No messages match your search.
-          </div>
-        )}
-        <div ref={endRef} />
+        <div style={{ maxWidth: 820, margin: "0 auto" }}>
+          {isLoadingMessages ? (
+            <div className="flex justify-center py-12">
+              <Spin />
+            </div>
+          ) : emptyState ? (
+            <Empty
+              description={
+                activeConversationId
+                  ? "No messages yet. Start the conversation below."
+                  : "Select or create a conversation to start chatting."
+              }
+            />
+          ) : filteredMessages.length ? (
+            filteredMessages.map((message) => (
+              <MessageBubble key={message.id} message={message} />
+            ))
+          ) : (
+            <Empty description="No messages match your search." />
+          )}
+          <div ref={endRef} />
+        </div>
       </div>
 
       <div style={{ flexShrink: 0 }}>
-        <ChatInput onSend={handleSend} disabled={isStreaming || !activeConversationId} />
+        <ChatInput
+          onSend={handleSend}
+          disabled={isStreaming || !activeConversationId}
+        />
       </div>
     </div>
   );
