@@ -1,36 +1,38 @@
 import { useState } from "react";
-import ModelSelector from "./ModelSelector";
+import { Button, Input } from "antd";
 
-export default function ChatInput({
-  onSend,
-  model,
-  setModel,
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-}: any) {
+interface ChatInputProps {
+  onSend: (text: string) => void;
+  disabled?: boolean;
+}
+
+export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [text, setText] = useState("");
 
   const handleSend = () => {
-    if (!text.trim()) return;
-    onSend(text);
+    if (!text.trim() || disabled) return;
+    onSend(text.trim());
     setText("");
   };
 
   return (
-    <div className="flex items-center gap-2 p-4 border-t border-gray-700">
-      <ModelSelector model={model} setModel={setModel} />
-      <input
-        className="flex-1 bg-gray-800 p-3 rounded text-white"
-        placeholder="Message the model..."
+    <div className="flex items-end gap-3 p-4 border-t border-slate-800">
+      <Input.TextArea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
+        placeholder="Message the model..."
+        autoSize={{ minRows: 1, maxRows: 5 }}
+        disabled={disabled}
+        onPressEnter={(e) => {
+          if (e.shiftKey) return;
+          e.preventDefault();
+          handleSend();
+        }}
+        className="bg-slate-900 text-slate-100"
       />
-      <button
-        onClick={handleSend}
-        className="bg-blue-600 px-4 py-2 rounded"
-      >
+      <Button type="primary" onClick={handleSend} disabled={disabled}>
         Send
-      </button>
+      </Button>
     </div>
   );
 }

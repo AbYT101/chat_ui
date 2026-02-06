@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { List } from "antd";
+
 export default function SearchResults({ results }: { results: any[] }) {
   return (
-    <div className="mt-4 space-y-2">
-      {results.map((r, i) => (
-        <div key={i} className="bg-gray-800 p-3 rounded">
-          <pre className="text-sm">{JSON.stringify(r, null, 2)}</pre>
-        </div>
-      ))}
-    </div>
+    <List
+      className="mt-4"
+      dataSource={results}
+      locale={{ emptyText: "No results yet." }}
+      renderItem={(result, index) => (
+        <List.Item className="border border-slate-800 rounded-lg bg-slate-900">
+          <pre className="text-sm text-slate-200 whitespace-pre-wrap">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        </List.Item>
+      )}
+    />
   );
 }

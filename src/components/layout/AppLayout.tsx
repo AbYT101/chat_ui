@@ -1,14 +1,26 @@
 // src/components/layout/AppLayout.tsx
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex h-screen bg-gray-900 text-white">
-      <aside className="w-64 border-r border-gray-700">
-        Sidebar
-      </aside>
+import { Layout } from "antd";
+import { Outlet } from "react-router-dom";
+import Sidebar from "../Sidebar";
 
-      <main className="flex-1 flex flex-col">
-        {children}
-      </main>
-    </div>
+const { Sider, Content } = Layout;
+
+export default function AppLayout() {
+  return (
+    <Layout className="h-screen bg-slate-950 text-white" style={{ height: '100vh' }}>
+      <Sider
+        width={280}
+        theme="dark"
+        className="border-r border-slate-800 bg-slate-950"
+        style={{ height: '100vh', overflow: 'auto' }}
+      >
+        <Sidebar />
+      </Sider>
+      <Layout className="bg-slate-950" style={{ height: '100vh' }}>
+        <Content className="overflow-hidden" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <Outlet />
+        </Content>
+      </Layout>
+    </Layout>
   );
 }
