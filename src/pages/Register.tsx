@@ -1,5 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  Alert,
+  Button,
+  Card,
+  Divider,
+  Form,
+  Input,
+  Layout,
+  Space,
+  Typography,
+} from "antd";
 import { register as registerRequest } from "../api/auth.api";
 import { useAuth } from "../auth/AuthContext";
 
@@ -13,22 +24,21 @@ const extractToken = (payload: unknown) => {
 export default function Register() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const onSubmit = async (values: {
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => {
     setError(null);
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
     setLoading(true);
     try {
-      const response = await registerRequest(email.trim(), password);
+      const response = await registerRequest(
+        values.email.trim(),
+        values.password
+      );
       const token = extractToken(response.data);
       if (token) {
         login(token);
@@ -45,80 +55,111 @@ export default function Register() {
     }
   };
 
+  const { Title, Text } = Typography;
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-xl p-8 shadow-lg">
-        <h1 className="text-2xl font-semibold mb-2">Create your account</h1>
-        <p className="text-sm text-gray-400 mb-6">
-          Get started with your own AI workspace.
-        </p>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm text-gray-300" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-gray-300" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="••••••••"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-gray-300" htmlFor="confirmPassword">
-              Confirm password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="••••••••"
-            />
-          </div>
-          {error ? (
-            <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-              {error}
+    <Layout
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 45%), #0b1220",
+      }}
+    >
+      <Layout.Content
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "48px 16px",
+        }}
+      >
+        <Card
+          style={{ width: "100%", maxWidth: 440 }}
+          styles={{ body: { padding: 32 } }}
+          bordered
+        >
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <div>
+              <Title level={3} style={{ marginBottom: 4 }}>
+                Create your account
+              </Title>
+              <Text type="secondary">
+                Get started with your personal AI workspace.
+              </Text>
             </div>
-          ) : null}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-indigo-500 hover:bg-indigo-400 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 font-medium text-white"
-          >
-            {loading ? "Creating account..." : "Create account"}
-          </button>
-        </form>
-        <p className="mt-6 text-sm text-gray-400">
-          Already have an account?{" "}
-          <Link className="text-indigo-300 hover:text-indigo-200" to="/login">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
+
+            {error ? <Alert message={error} type="error" showIcon /> : null}
+
+            <Form layout="vertical" onFinish={onSubmit} requiredMark={false}>
+              <Form.Item
+                label="Email"
+                name="email"
+                rules={[
+                  { required: true, message: "Please enter your email." },
+                  { type: "email", message: "Enter a valid email address." },
+                ]}
+              >
+                <Input
+                  size="large"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                />
+              </Form.Item>
+              <Form.Item
+                label="Password"
+                name="password"
+                rules={[{ required: true, message: "Create a password." }]}
+                extra="Use a mix of letters, numbers, and symbols."
+              >
+                <Input.Password
+                  size="large"
+                  placeholder="Create a password"
+                  autoComplete="new-password"
+                />
+              </Form.Item>
+              <Form.Item
+                label="Confirm password"
+                name="confirmPassword"
+                dependencies={["password"]}
+                rules={[
+                  { required: true, message: "Confirm your password." },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("password") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error("Passwords do not match.")
+                      );
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password
+                  size="large"
+                  placeholder="Repeat your password"
+                  autoComplete="new-password"
+                />
+              </Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                block
+                size="large"
+              >
+                Create account
+              </Button>
+            </Form>
+
+            <Divider plain>Already have an account?</Divider>
+            <Text type="secondary">
+              <Link to="/login">Sign in</Link> instead.
+            </Text>
+          </Space>
+        </Card>
+      </Layout.Content>
+    </Layout>
   );
 }
 

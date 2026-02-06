@@ -1,5 +1,17 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Divider,
+  Form,
+  Input,
+  Layout,
+  Space,
+  Typography,
+} from "antd";
 import { login as loginRequest } from "../api/auth.api";
 import { useAuth } from "../auth/AuthContext";
 
@@ -13,17 +25,14 @@ const extractToken = (payload: unknown) => {
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const onSubmit = async (values: { email: string; password: string }) => {
     setError(null);
     setLoading(true);
     try {
-      const response = await loginRequest(email.trim(), password);
+      const response = await loginRequest(values.email.trim(), values.password);
       const token = extractToken(response.data);
       if (!token) {
         throw new Error("Login succeeded but no token was returned.");
@@ -39,65 +48,90 @@ export default function Login() {
     }
   };
 
+  const { Title, Text } = Typography;
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-xl p-8 shadow-lg">
-        <h1 className="text-2xl font-semibold mb-2">Welcome back</h1>
-        <p className="text-sm text-gray-400 mb-6">
-          Sign in to continue to your workspace.
-        </p>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm text-gray-300" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-gray-300" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-2 w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="••••••••"
-            />
-          </div>
-          {error ? (
-            <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-              {error}
+    <Layout
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top, rgba(99, 102, 241, 0.18), transparent 45%), #0b1220",
+      }}
+    >
+      <Layout.Content
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "48px 16px",
+        }}
+      >
+        <Card
+          style={{ width: "100%", maxWidth: 420 }}
+          styles={{ body: { padding: 32 } }}
+          bordered
+        >
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <div>
+              <Title level={3} style={{ marginBottom: 4 }}>
+                Welcome back
+              </Title>
+              <Text type="secondary">
+                Sign in to continue to your AI workspace.
+              </Text>
             </div>
-          ) : null}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-indigo-500 hover:bg-indigo-400 disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 font-medium text-white"
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-        <p className="mt-6 text-sm text-gray-400">
-          New here?{" "}
-          <Link className="text-indigo-300 hover:text-indigo-200" to="/register">
-            Create an account
-          </Link>
-        </p>
-      </div>
-    </div>
+
+            {error ? <Alert message={error} type="error" showIcon /> : null}
+
+            <Form layout="vertical" onFinish={onSubmit} requiredMark={false}>
+              <Form.Item
+                label="Email"
+                name="email"
+                rules={[
+                  { required: true, message: "Please enter your email." },
+                  { type: "email", message: "Enter a valid email address." },
+                ]}
+              >
+                <Input
+                  size="large"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                />
+              </Form.Item>
+              <Form.Item
+                label="Password"
+                name="password"
+                rules={[{ required: true, message: "Enter your password." }]}
+              >
+                <Input.Password
+                  size="large"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
+              </Form.Item>
+              <Form.Item name="remember" valuePropName="checked">
+                <Checkbox>Remember me</Checkbox>
+              </Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                block
+                size="large"
+              >
+                Sign in
+              </Button>
+            </Form>
+
+            <Divider plain>New here?</Divider>
+            <Text type="secondary">
+              Create your account{" "}
+              <Link to="/register">and get started</Link>.
+            </Text>
+          </Space>
+        </Card>
+      </Layout.Content>
+    </Layout>
   );
 }
 
