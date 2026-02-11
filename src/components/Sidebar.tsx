@@ -24,6 +24,8 @@ import {
   ThunderboltOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import { LogoutOutlined } from "@ant-design/icons";
+import { useAuth } from "../auth/AuthContext";
 import { useChat } from "../chat/ChatContext";
 import { useThemeMode } from "../theme/ThemeProvider";
 
@@ -52,6 +54,7 @@ export default function Sidebar() {
     startNewConversation,
     isLoading,
   } = useChat();
+  const { logout } = useAuth();
   const [search, setSearch] = useState("");
 
   const filteredConversations = useMemo(() => {
@@ -215,7 +218,21 @@ export default function Sidebar() {
             </Typography.Text>
           </div>
         </Space>
-        <Badge status="success" />
+        <Space>
+          <Badge status="success" />
+          <Button
+            size="small"
+            danger
+            icon={<LogoutOutlined />}
+            onClick={() => {
+              logout();
+              localStorage.removeItem("activeConversationId");
+              navigate("/login");
+            }}
+          >
+            Logout
+          </Button>
+        </Space>
       </div>
     </div>
   );

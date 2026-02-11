@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { createConversation, listConversations } from "../api/chat.api";
+import { useAuth } from "../auth/AuthContext";
 
 type ConversationSummary = {
   id: number;
@@ -12,6 +13,7 @@ type ChatContextType = {
   setActiveConversationId: (id: number | null) => void;
   refreshConversations: () => Promise<void>;
   startNewConversation: () => Promise<number | null>;
+  logout: () => void;
   isLoading: boolean;
 };
 
@@ -29,6 +31,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [activeConversationId, setActiveConversationIdState] =
     useState<number | null>(getStoredConversationId);
   const [isLoading, setIsLoading] = useState(false);
+  const { logout: authLogout } = useAuth();
 
   const refreshConversations = async () => {
     setIsLoading(true);
@@ -62,6 +65,16 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const logout = () => {
+    try {
+      authLogout();
+    } finally {
+      setConversations([]);
+      setActiveConversationIdState(null);
+      localStorage.removeItem("activeConversationId");
+    }
+  };
+
   useEffect(() => {
     refreshConversations();
   }, []);
@@ -84,6 +97,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       setActiveConversationId: setActiveConversationIdState,
       refreshConversations,
       startNewConversation,
+      logout,
       isLoading,
     }),
     [conversations, activeConversationId, isLoading]
