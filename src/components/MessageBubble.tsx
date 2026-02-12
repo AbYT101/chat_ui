@@ -1,5 +1,5 @@
 import { Avatar, Space, Spin, Tag, Typography, theme } from "antd";
-import { RobotOutlined } from "@ant-design/icons";
+import { RobotOutlined, UserOutlined } from "@ant-design/icons";
 import type { Message } from "../types/chat";
 import { useThemeMode } from "../theme/ThemeProvider";
 
@@ -7,63 +7,100 @@ export default function MessageBubble({ message }: { message: Message }) {
   const { token } = theme.useToken();
   const { mode } = useThemeMode();
   const isUser = message.role === "user";
-  const userBg =
-    mode === "dark" ? "rgba(99, 102, 241, 0.22)" : token.colorPrimaryBg;
-  const assistantBg = token.colorBgContainer;
 
   return (
     <div
-      className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}
-      style={{ width: "100%" }}
+      style={{ 
+        width: "100%",
+        display: "flex",
+        gap: 16,
+      }}
     >
-      <Space
-        align="start"
-        size={12}
+      {/* Avatar */}
+      <Avatar
+        size={36}
+        icon={isUser ? <UserOutlined /> : <RobotOutlined />}
         style={{
-          maxWidth: "100%",
-          width: "100%",
-          justifyContent: isUser ? "flex-end" : "flex-start",
+          flexShrink: 0,
+          background: isUser 
+            ? "linear-gradient(135deg, #1890ff, #722ed1)"
+            : mode === "dark"
+              ? "#1f1f1f"
+              : "#f5f5f5",
+          color: isUser 
+            ? "#ffffff"
+            : mode === "dark" 
+              ? "#ffffff" 
+              : "#000000",
         }}
-      >
-        {!isUser ? (
-          <Avatar
-            icon={<RobotOutlined />}
-            style={{
-              background: "#1f2937",
-              color: "#e2e8f0",
-            }}
-          />
-        ) : null}
+      />
+      
+      {/* Message Content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Header */}
+        <div style={{ marginBottom: 8 }}>
+          <Space size={8} align="center">
+            <Typography.Text strong style={{ fontSize: 14 }}>
+              {isUser ? "You" : "Assistant"}
+            </Typography.Text>
+            {!isUser && message.model ? (
+              <Tag 
+                color="blue" 
+                style={{ 
+                  margin: 0,
+                  fontSize: 11,
+                  padding: "0 6px",
+                  lineHeight: "20px",
+                }}
+              >
+                {message.model}
+              </Tag>
+            ) : null}
+          </Space>
+        </div>
+
+        {/* Message Body */}
         <div
           style={{
-            maxWidth: 640,
-            background: isUser ? userBg : assistantBg,
-            borderRadius: 12,
-            padding: "12px 14px",
-            color: token.colorText,
+            background: mode === "dark" ? "#1a1a1a" : "#f5f5f5",
+            borderRadius: 8,
+            padding: "12px 16px",
+            fontSize: 14,
+            lineHeight: 1.6,
           }}
         >
-          {!isUser && message.model ? (
-            <Tag color="geekblue" style={{ marginBottom: 6 }}>
-              {message.model}
-            </Tag>
-          ) : null}
           {message.isStreaming && !message.content ? (
             <Space size={8}>
               <Spin size="small" />
-              <Typography.Text type="secondary">
-                Generating response…
+              <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                Thinking...
               </Typography.Text>
             </Space>
           ) : (
             <Typography.Paragraph
-              style={{ marginBottom: 0, whiteSpace: "pre-wrap" }}
+              style={{ 
+                marginBottom: 0, 
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
             >
               {message.content}
+              {message.isStreaming && (
+                <span 
+                  style={{ 
+                    display: "inline-block",
+                    width: 8,
+                    height: 16,
+                    marginLeft: 2,
+                    background: token.colorPrimary,
+                    animation: "blink 1s infinite",
+                  }}
+                />
+              )}
             </Typography.Paragraph>
           )}
         </div>
-      </Space>
+      </div>
     </div>
   );
 }

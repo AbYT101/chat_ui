@@ -14,6 +14,8 @@ type ChatContextType = {
   refreshConversations: () => Promise<void>;
   startNewConversation: () => Promise<number | null>;
   logout: () => void;
+  /** Clears cached chat data and reloads conversations (call after login). */
+  clearCacheAndRefresh: () => Promise<void>;
   isLoading: boolean;
 };
 
@@ -75,6 +77,13 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const clearCacheAndRefresh = async () => {
+    setConversations([]);
+    setActiveConversationIdState(null);
+    localStorage.removeItem("activeConversationId");
+    await refreshConversations();
+  };
+
   useEffect(() => {
     refreshConversations();
   }, []);
@@ -98,6 +107,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       refreshConversations,
       startNewConversation,
       logout,
+      clearCacheAndRefresh,
       isLoading,
     }),
     [conversations, activeConversationId, isLoading]
