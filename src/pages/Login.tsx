@@ -17,6 +17,7 @@ import {
 import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { login as loginRequest } from "../api/auth.api";
 import { useAuth } from "../auth/AuthContext";
+import { useChat } from "../chat/ChatContext";
 import { useThemeMode } from "../theme/ThemeProvider";
 
 const extractToken = (payload: unknown) => {
@@ -31,6 +32,7 @@ export default function Login() {
   const { mode, toggle } = useThemeMode();
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { clearCacheAndRefresh } = useChat();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +46,7 @@ export default function Login() {
         throw new Error("Login succeeded but no token was returned.");
       }
       login(token);
+      await clearCacheAndRefresh();
       navigate("/");
     } catch (err) {
       const message =

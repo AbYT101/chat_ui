@@ -16,6 +16,7 @@ import {
 import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { register as registerRequest } from "../api/auth.api";
 import { useAuth } from "../auth/AuthContext";
+import { useChat } from "../chat/ChatContext";
 import { useThemeMode } from "../theme/ThemeProvider";
 
 const extractToken = (payload: unknown) => {
@@ -30,6 +31,7 @@ export default function Register() {
   const { mode, toggle } = useThemeMode();
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { clearCacheAndRefresh } = useChat();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +50,7 @@ export default function Register() {
       const token = extractToken(response.data);
       if (token) {
         login(token);
+        await clearCacheAndRefresh();
         navigate("/");
       } else {
         navigate("/login");

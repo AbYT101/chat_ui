@@ -136,88 +136,114 @@ export default function Chat() {
   return (
     <div
       className="flex-1 flex flex-col overflow-hidden"
-      style={{ height: "100%", width: "100%" }}
+      style={{ 
+        height: "100%", 
+        width: "100%",
+        background: mode === "dark" ? "#212121" : "#ffffff",
+      }}
     >
+      {/* Header */}
       <div
         style={{
           flexShrink: 0,
-          background:
-            mode === "dark"
-              ? "linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.72))"
-              : "linear-gradient(180deg, rgba(241, 245, 249, 0.95), rgba(248, 250, 252, 0.9))",
+          borderBottom: mode === "dark" ? "1px solid #303030" : "1px solid #f0f0f0",
+          background: mode === "dark" ? "#141414" : "#fafafa",
         }}
       >
-        <div className="p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div style={{ padding: "16px 24px" }}>
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <Typography.Title level={4} style={{ margin: 0 }}>
-                Conversation
+              <Typography.Title level={4} style={{ margin: 0, fontWeight: 600 }}>
+                {activeConversationId ? `Conversation #${activeConversationId}` : "Chat"}
               </Typography.Title>
-              <Typography.Text type="secondary">
-                Ask questions and get responses in real time.
+              <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                Ask questions and get responses in real time
               </Typography.Text>
             </div>
             <Space size={12} wrap>
               <Badge
-                status={isStreaming ? "processing" : "default"}
-                text={isStreaming ? "Streaming" : "Ready"}
+                status={isStreaming ? "processing" : "success"}
+                text={isStreaming ? "Generating..." : "Ready"}
               />
               <ModelSelector onChange={setModel} value={model} />
               <Input.Search
-                placeholder="Search this chat"
+                placeholder="Search messages..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 allowClear
-                style={{ width: 220 }}
+                style={{ width: 240 }}
               />
             </Space>
           </div>
         </div>
       </div>
 
+      {/* Messages Area */}
       <div
-        className="flex-1 overflow-y-auto p-6"
+        className="flex-1 overflow-y-auto"
         style={{
           flexGrow: 1,
-          background:
-            mode === "dark"
-              ? "linear-gradient(180deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.95))"
-              : token.colorBgLayout,
+          background: mode === "dark" ? "#212121" : "#ffffff",
         }}
       >
-        {error ? (
-          <Alert
-            message={error}
-            type="error"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
-        ) : null}
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 24px 80px" }}>
+          {error ? (
+            <Alert
+              message={error}
+              type="error"
+              showIcon
+              closable
+              style={{ marginBottom: 24 }}
+              onClose={() => setError(null)}
+            />
+          ) : null}
 
-        <div style={{ maxWidth: 820, margin: "0 auto" }}>
           {isLoadingMessages ? (
-            <div className="flex justify-center py-12">
-              <Spin />
+            <div className="flex justify-center" style={{ paddingTop: 80 }}>
+              <Space direction="vertical" align="center" size={16}>
+                <Spin size="large" />
+                <Typography.Text type="secondary">Loading messages...</Typography.Text>
+              </Space>
             </div>
           ) : emptyState ? (
-            <Empty
-              description={
-                activeConversationId
-                  ? "No messages yet. Start the conversation below."
-                  : "Select or create a conversation to start chatting."
-              }
-            />
+            <div style={{ paddingTop: 80 }}>
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  <Space direction="vertical" size={8}>
+                    <Typography.Text type="secondary">
+                      {activeConversationId
+                        ? "No messages yet"
+                        : "Select or create a conversation"}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                      {activeConversationId
+                        ? "Start the conversation by typing a message below"
+                        : "Choose a conversation from the sidebar or create a new one"}
+                    </Typography.Text>
+                  </Space>
+                }
+              />
+            </div>
           ) : filteredMessages.length ? (
-            filteredMessages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))
+            <Space direction="vertical" size={24} style={{ width: "100%" }}>
+              {filteredMessages.map((message) => (
+                <MessageBubble key={message.id} message={message} />
+              ))}
+            </Space>
           ) : (
-            <Empty description="No messages match your search." />
+            <div style={{ paddingTop: 80 }}>
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="No messages match your search"
+              />
+            </div>
           )}
           <div ref={endRef} />
         </div>
       </div>
 
+      {/* Input Area */}
       <div style={{ flexShrink: 0 }}>
         <ChatInput
           onSend={handleSend}

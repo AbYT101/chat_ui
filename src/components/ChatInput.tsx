@@ -21,40 +21,55 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
 
   return (
     <div
-      className="p-4"
       style={{
-        background:
-          mode === "dark"
-            ? "linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 1))"
-            : `linear-gradient(180deg, ${token.colorBgLayout}, ${token.colorBgContainer})`,
+        borderTop: mode === "dark" ? "1px solid #303030" : "1px solid #f0f0f0",
+        background: mode === "dark" ? "#141414" : "#fafafa",
+        padding: "16px 24px 24px",
       }}
     >
-      <div style={{ maxWidth: 820, margin: "0 auto" }}>
-        <Space direction="vertical" size={8} style={{ width: "100%" }}>
-          <Input.TextArea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Message the model..."
-            autoSize={{ minRows: 2, maxRows: 8 }}
-            disabled={disabled}
-            onPressEnter={(e) => {
-              if (e.shiftKey) return;
-              e.preventDefault();
-              handleSend();
-            }}
-          />
-          <div className="flex items-center justify-between">
-            <Typography.Text type="secondary">
-              Press Enter to send, Shift + Enter for new line
-            </Typography.Text>
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <Space direction="vertical" size={12} style={{ width: "100%" }}>
+          <div style={{ position: "relative" }}>
+            <Input.TextArea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={disabled ? "Select a conversation to start chatting..." : "Type your message..."}
+              autoSize={{ minRows: 3, maxRows: 10 }}
+              disabled={disabled}
+              size="large"
+              onPressEnter={(e) => {
+                if (e.shiftKey) return;
+                e.preventDefault();
+                handleSend();
+              }}
+              style={{
+                fontSize: 14,
+                paddingRight: 60,
+                resize: "none",
+              }}
+            />
             <Button
               type="primary"
               icon={<SendOutlined />}
               onClick={handleSend}
-              disabled={disabled}
-            >
-              Send
-            </Button>
+              disabled={disabled || !text.trim()}
+              size="large"
+              style={{
+                position: "absolute",
+                right: 8,
+                bottom: 8,
+              }}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              Press <Typography.Text keyboard style={{ fontSize: 12 }}>Enter</Typography.Text> to send, <Typography.Text keyboard style={{ fontSize: 12 }}>Shift + Enter</Typography.Text> for new line
+            </Typography.Text>
+            {text.length > 0 && (
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                {text.length} characters
+              </Typography.Text>
+            )}
           </div>
         </Space>
       </div>
